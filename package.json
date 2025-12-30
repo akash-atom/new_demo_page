@@ -1,0 +1,24 @@
+{
+  "name": "aw-webflow/new_demo_page",
+  "version": "1.0.0",
+  "description": "",
+  
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel script.js"
+    
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akash-atom/new_demo_page.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akash-atom/new_demo_page/issues"
+  },
+  "homepage": "https://github.com/akash-atom/new_demo_page#readme",
+  "dependencies": {
+    "parcel": "^2.16.3"
+  }
+}

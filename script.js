@@ -1,73 +1,45 @@
-
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOMContentLoaded");
+// 1) Detect when the calendar container comes into view
+const calendarWrap = document.querySelector('#revenuehero-container'); // your div
+const divsToHide = document.querySelectorAll('.demo_logos_wrapper'); 
 
-  const calendarWrap = document.querySelector('#revenuehero-container');
-  const demoLogos = document.querySelector('.demo_logos_wrapper');
-
-  if (!calendarWrap || !demoLogos) return;
-
-  let calendarInView = false;
-  let calendarLoaded = false;
-  let visibilityTimeout = null;
-  let lastVisibilityState = null;
-
-  function applyVisibility() {
-    const shouldHideDemoLogos = calendarInView && calendarLoaded;
-
-    // Prevent unnecessary DOM updates if state hasn't changed
-    if (lastVisibilityState === shouldHideDemoLogos) {
-      return;
-    }
-
-    // Clear any pending visibility changes
-    if (visibilityTimeout) {
-      clearTimeout(visibilityTimeout);
-    }
-
-    // Debounce visibility changes to prevent flickering
-    visibilityTimeout = setTimeout(() => {
-      demoLogos.style.display = shouldHideDemoLogos ? 'none' : '';
-      lastVisibilityState = shouldHideDemoLogos;
-    }, 150); // 150ms debounce delay
-  }
-
-  // 1️⃣ Viewport detection with more stable threshold
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      // Only update if the intersection state actually changed
-      const newInView = entry.isIntersecting && entry.intersectionRatio >= 0.25;
-      if (newInView !== calendarInView) {
-        calendarInView = newInView;
-        applyVisibility();
-      }
-    },
-    { 
-      threshold: [0, 0.25, 0.5, 0.75, 1],
-      rootMargin: '0px'
-    }
-  );
-
-  observer.observe(calendarWrap);
-
-  // 2️⃣ RevenueHero lifecycle events
-  window.addEventListener('message', (event) => {
-    if (!event?.data?.type) return;
-
-    if (
-      event.data.type === 'PAGE_LOADED' ||
-      event.data.type === 'RESIZE_IFRAME'
-    ) {
-      // Add a small delay to ensure calendar is fully rendered
-      setTimeout(() => {
-        calendarLoaded = true;
-        applyVisibility();
-      }, 100);
-    }
+function setHidden(hidden) {
+  divsToHide.forEach(el => {
+    
+    el.style.opacity = hidden ? '0' : '1';
+    el.style.pointerEvents = hidden ? 'none' : 'auto';
   });
-  
+}
 
+let calendarInView = false;
+let calendarLoaded = false;
 
+const apply = () => {
+  // hide only when it's both in view AND loaded
+  setHidden(calendarInView && calendarLoaded);
+};
 
+const io = new IntersectionObserver(
+  ([entry]) => {
+    calendarInView = entry.isIntersecting;
+    apply();
+  },
+  { threshold: 0.25 } // adjust
+);
 
+if (calendarWrap) io.observe(calendarWrap);
+
+// 2) Listen for RevenueHero events (postMessage)
+window.addEventListener('message', (ev) => {
+  if (!ev?.data?.type) return;
+
+  if (
+    ev.data.type === 'PAGE_LOADED' ||
+    ev.data.type === 'RESIZE_IFRAME'
+  ) {
+    calendarLoaded = true;
+    apply();
+  }
 });
-
+});

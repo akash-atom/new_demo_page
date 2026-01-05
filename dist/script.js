@@ -714,46 +714,39 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 }
 
 },{}],"6rimH":[function(require,module,exports,__globalThis) {
-const demo_v3 = new Swiper('.demo_v3', {
-    speed: 600,
-    loop: false,
-    autoHeight: false,
-    centeredSlides: false,
-    followFinger: true,
-    freeMode: false,
-    slideToClickedSlide: false,
-    slidesPerView: 1,
-    spaceBetween: 8,
-    rewind: false,
-    mousewheel: {
-        forceToAxis: true
-    },
-    keyboard: {
-        enabled: true,
-        onlyInViewport: true
-    },
-    breakpoints: {
-        // mobile landscape
-        480: {
-            slidesPerView: 1,
-            spaceBetween: 16
-        },
-        // tablet
-        768: {
-            slidesPerView: 1,
-            spaceBetween: 16
-        },
-        // desktop
-        992: {
-            slidesPerView: 1,
-            spaceBetween: 24
-        }
-    },
-    navigation: {
-        nextEl: '.swiper-next-demo-v3',
-        prevEl: '.swiper-prev-demo-v3',
-        disabledClass: "fold_1_arr_disabled"
+document.addEventListener("DOMContentLoaded", ()=>{
+    console.log("DOMContentLoaded");
+    // 1) Detect when the calendar container comes into view
+    const calendarWrap = document.querySelector('#revenuehero-container'); // your div
+    const divsToHide = document.querySelectorAll('.demo_logos_wrapper');
+    function setHidden(hidden) {
+        divsToHide.forEach((el)=>{
+            el.style.opacity = hidden ? '0' : '1';
+            el.style.pointerEvents = hidden ? 'none' : 'auto';
+        });
     }
+    let calendarInView = false;
+    let calendarLoaded = false;
+    const apply = ()=>{
+        // hide only when it's both in view AND loaded
+        setHidden(calendarInView && calendarLoaded);
+    };
+    const io = new IntersectionObserver(([entry])=>{
+        calendarInView = entry.isIntersecting;
+        apply();
+    }, {
+        threshold: 0.25
+    } // adjust
+    );
+    if (calendarWrap) io.observe(calendarWrap);
+    // 2) Listen for RevenueHero events (postMessage)
+    window.addEventListener('message', (ev)=>{
+        if (!ev?.data?.type) return;
+        if (ev.data.type === 'PAGE_LOADED' || ev.data.type === 'RESIZE_IFRAME') {
+            calendarLoaded = true;
+            apply();
+        }
+    });
 });
 
 },{}]},["3O61n","6rimH"], "6rimH", "parcelRequire8d1e", {})

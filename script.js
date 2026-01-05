@@ -1,85 +1,73 @@
-const demo_v3 = new Swiper('.demo_v3', {
-    speed: 600,
-    loop: false,
-    autoHeight: false,
-    centeredSlides: false,
-    followFinger: true,
-    freeMode: false,
-    slideToClickedSlide: false,
-    slidesPerView: 1,
-    spaceBetween: 8,
-    rewind: false,
-    mousewheel: {
-        forceToAxis: true,
-    },
-    keyboard: {
-      enabled: true,
-      onlyInViewport: true
-    },
-    breakpoints: {
-      // mobile landscape
-      480: {
-        slidesPerView: 1,
-        spaceBetween: 16
-      },
-      // tablet
-      768: {
-        slidesPerView: 1,
-        spaceBetween: 16
-      },
-      // desktop
-      992: {
-        slidesPerView: 1,
-        spaceBetween: 24
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const calendarWrap = document.querySelector('#revenuehero-container');
+  const demoLogos = document.querySelector('.demo_logos_wrapper');
+
+  if (!calendarWrap || !demoLogos) return;
+
+  let calendarInView = false;
+  let calendarLoaded = false;
+  let visibilityTimeout = null;
+  let lastVisibilityState = null;
+
+  function applyVisibility() {
+    const shouldHideDemoLogos = calendarInView && calendarLoaded;
+
+    // Prevent unnecessary DOM updates if state hasn't changed
+    if (lastVisibilityState === shouldHideDemoLogos) {
+      return;
+    }
+
+    // Clear any pending visibility changes
+    if (visibilityTimeout) {
+      clearTimeout(visibilityTimeout);
+    }
+
+    // Debounce visibility changes to prevent flickering
+    visibilityTimeout = setTimeout(() => {
+      demoLogos.style.display = shouldHideDemoLogos ? 'none' : '';
+      lastVisibilityState = shouldHideDemoLogos;
+    }, 150); // 150ms debounce delay
+  }
+
+  // 1️⃣ Viewport detection with more stable threshold
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      // Only update if the intersection state actually changed
+      const newInView = entry.isIntersecting && entry.intersectionRatio >= 0.25;
+      if (newInView !== calendarInView) {
+        calendarInView = newInView;
+        applyVisibility();
       }
     },
-    navigation: {
-        nextEl: '.swiper-next-demo-v3',
-        prevEl: '.swiper-prev-demo-v3',
-        disabledClass: "fold_1_arr_disabled"
-      },
+    { 
+      threshold: [0, 0.25, 0.5, 0.75, 1],
+      rootMargin: '0px'
+    }
+  );
+
+  observer.observe(calendarWrap);
+
+  // 2️⃣ RevenueHero lifecycle events
+  window.addEventListener('message', (event) => {
+    if (!event?.data?.type) return;
+
+    if (
+      event.data.type === 'PAGE_LOADED' ||
+      event.data.type === 'RESIZE_IFRAME'
+    ) {
+      // Add a small delay to ensure calendar is fully rendered
+      setTimeout(() => {
+        calendarLoaded = true;
+        applyVisibility();
+      }, 100);
+    }
   });
-
-  //////////////////////////////////////
-
-
-
   
- 
 
-  
- 
 
-    init({
-      container: '#demo-form',
-      adapter: 'hubspot',
-      hubspot: {
-        portalId: '22680279',
-        formId: '8faeaa27-2d67-4cfc-936c-036cf1d5aba7',
-        fieldMapping: {
-          firstname: 'firstname',
-          lastname: 'lastname',
-          email: 'email',
-          companySize: 'company_size',
-          currentTool: 'current_tool'
-        }
-      },
-      mock: false,
-      onSubmit: (data) => {
-        const nameParts = (data.fullName || '').trim().split(/\s+/);
-        data.firstname = nameParts[0] || '';
-        data.lastname = nameParts.slice(1).join(' ') || '';
-      },
-      onSuccess: (data) => {
-        if (typeof RevenueHero !== 'undefined') {
-          const hero = new RevenueHero({ routerId: '4724' });
-          const nameParts = (data.fullName || '').split(' ');
-          const revData = { email: data.email, firstname: nameParts[0] || '', lastname: nameParts.slice(1).join(' ') || '' }
-          
-          hero.submit(revData).then((sessionData) => {
-            hero.dialog.open(sessionData);
-          });
-        }
-      }
-    });
-  
+
+
+});
+
